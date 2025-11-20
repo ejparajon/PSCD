@@ -1,0 +1,13 @@
+﻿State,Third Party PPA (C),Net Metering (C),Utility Green Tariffs (C),Residential Retail Choice (C),Commercial and Industrial Retail Choice (C),Option for Municipal Ownership of Utilities (S),Presence of a Consumer Advocate (S),Community Choice Aggregation (S),Customer Concentration (S),Generation Concentration (S),Interconnection Standards (S),Procurement Requirements (S),Market Participation (M),Civil Society Participation Role in Wholesale Market (M),State Authority Role in Wholesale Market (M)
+Alabama,0,0.25,0.25,0,0,1,1,0,0,0,0.33,0.33,0.2,0,0
+Arkansas,0.5,0.25,0.75,0,0,1,1,0,0,0,0.33,1,1,0.913342646,0.66
+Florida,0.5,1,0.75,0,0,1,1,0,0,0,0.66,0.66,0.2,0,0
+Georgia,1,0.5,1,0,0.5,1,0,0,0,0,0.33,0.66,0.2,0,0
+Kentucky,0,0.5,1,0,0,1,1,0,1,0.5,0.66,1,0.8,0.308079301,0.270600693
+Louisiana,0.5,0.75,0.75,0,0,1,0,0,0,0,0.33,1,1,0.967436049,0.66
+Mississippi,0.5,0.75,0.25,0,0,1,0,0,0.5,0.5,0.66,0.66,0.6,0.4889205,0.32268753
+North Carolina,0.5,0.75,1,0,0,1,1,0,0,0,1,0.33,0.4,0.004732959,0.004732959
+South Carolina,0.5,1,0.75,0,0,1,1,0,0.5,0,0.33,0.33,0.2,0,0
+Tennessee,0,0.25,0.25,0,0,1,1,0,1,0,1,0,0.4,0.004547512,0.004547512
+Virginia,0.5,0.5,0.75,0.5,0.5,1,1,1,0,0,0.66,1,1,0.328485432,0.328485432
+West Virginia,1,1,0.5,0,0,1,1,0,0,0.5,0.66,1,1,0.33,0.33
