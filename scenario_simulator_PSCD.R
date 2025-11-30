@@ -2,7 +2,7 @@
 
 # Loading required packages
 library(shiny)        # For building the interactive web app
-library(tidyverse)    # For data manipulation (dplyr, tidyr) and plotting (ggplot2)
+library(tidyverse)    # For data manipulation (dplyr, tidyr, stringr) and plotting (ggplot2)
 library(DT)           # For interactive tables
 library(bslib)        # For Bootstrap theming in Shiny
 library(scales)       # For wrapping text
@@ -100,7 +100,7 @@ ui <- fluidPage(
       wellPanel(
         h4("Adjust Indicators by Category",
            style = "font-weight: 700 !important; color: #2c3e50;"),
-        actionButton("reset", "Reset to Current Scoring"),
+        actionButton("reset", "Reset to Original Scoring"),
         hr(),
         # STATIC tabsetPanel of sliders created once at app startup
         tags$div(
@@ -144,8 +144,8 @@ ui <- fluidPage(
 
 # --- Server ------------------------------------------------------------------
 server <- function(input, output, session) {
+  # Define a null-coalescing operator that returns its left-hand side (a) if it's not NULL, otherwise it returns the right-hand side (b); useful for creating default settings
   `%||%` <- function(a, b) if (!is.null(a)) a else b
-  
   # Prepare stable IDs & precomputations (run once) 
   # Add safe_id column to the lookup for consistent input IDs
   indicator_groups_lookup <- indicator_groups_lookup %>%
@@ -259,8 +259,7 @@ server <- function(input, output, session) {
       coord_flip() +
       scale_fill_manual(values = COLOR_MAP, name = "Category") +
       labs(title = paste0("Indicator Values : ", input$state),
-           subtitle = "Scores range 0–1 (higher is better)",
-           x = NULL, y = "Score (0–1)") +
+           x = NULL, y = "Score: 0 (low) - 1 (high)") +
       scale_x_discrete(labels = label_wrap(width = 35)) +
       custom_indicator_theme
   })

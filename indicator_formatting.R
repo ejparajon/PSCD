@@ -9,28 +9,6 @@ colnames(base_data) <- colnames(base_data) %>%
   str_replace_all("\\s+", " ") %>%
   str_trim()
 
-# For continuous variables snap them to nearest for purposes of the sliders
-
-# --- Define allowed discrete steps ---
-allowed_steps <- c(0, 0.33, 0.66, 1.00)
-
-# --- Helper function to snap any numeric value to the nearest allowed step ---
-snap_to_discrete <- function(x, steps = allowed_steps) {
-  steps[which.min(abs(steps - x))]
-}
-
-# --- List of indicators to snap ---
-discrete_indicators <- c(
-  "Civil Society Participation Role in Wholesale Market (M)",
-  "State Authority Role in Wholesale Market (M)"
-)
-
-# --- Apply snapping to base_data ---
-for (ind in discrete_indicators) {
-  if (ind %in% colnames(base_data)) {
-    base_data[[ind]] <- sapply(base_data[[ind]], snap_to_discrete)
-  }
-}
 
 # Re-saving as a .rds
 saveRDS(base_data,"state_indicator_data.rds")
@@ -72,13 +50,13 @@ indicator_info <- list(
   
   # --- CONSUMER INDICATORS ---
   "Third Party PPA (C)" = 
-    "Power purchase agreements enable consumer choice as an additional finacing mechanism for the adoption of distributed generation (e.g. solar) and purchase of generated electricity from third-party providers.",
+    "The Third-Party Power Purchase Agreements indicator captures whether states permit customers to enter into contracts with third-party developers that install and operate energy systems on the customer’s property and sell power generated to the customer at a fixed rate.",
   
   "Net Metering (C)" = 
-    "Net metering allows owners of distributed generation to send excess electricity back to the grid and receive bill credits or payment.",
+    "The Net Metering indicator measures the extent to which states enable or require billing systems that provides credits to owners of distributed generation (e.g., solar) that return excess electricity generation to the grid.",
   
   "Utility Green Tariffs (C)" = 
-    "Green tariffs allow customers—especially C&I users to procure buy bundled renewable energy directly from utilities through a special rate.",
+    "The Utility Green Tariffs indicator measures the prevalence of utilities in a state that allow large commercial and industrial customers to buy electricity generated from renewable energy projects at a special rate.",
   
   "Residential Retail Choice (C)" = 
     "Indicates whether residential customers may select an alternative electricity supplier instead of the default utility.",
@@ -171,14 +149,14 @@ indicator_scoring_details <- list(
    0.66: Limited voting participation (ISO-NE, SPP).<br>
    0.33: Non-voting participation (PJM).<br>
    0.0: Not in RTO/ISO.<br>
-   Note (Simulator tool only): Weighted scores across multiple markets are snapped to the nearest discrete value (0.00, 0.33, 0.66, 1.00), so scores may appear differently in the app.",
+   Note: If a state is partially in a market(s) and with an area not participating in a market, the score is a weighted average of those (proportional to customer counts).",
   
   "State Authority Role in Wholesale Regional Market (M)" =
     "1.0: Statutory (CAISO, ERCOT).<br>
    0.66: Delegated (MISO, SPP).<br>
    0.33: Advisory (ISO-NE, NYISO, PJM).<br>
    0.0: No formal role or not in market.<br>
-   Note (Simulator tool only): Weighted scores across multiple markets are snapped to the nearest discrete value (0.00, 0.33, 0.66, 1.00), so scores may appear differently in the app."
+   Note: If a state is partially in a market(s) and with an area not participating in a market, the score is a weighted average of those (proportional to customer counts)."
 )
 
 
