@@ -35,14 +35,14 @@ theme_set(
 )
 
 # Custom theme for indicator bar charts
-custom_indicator_theme <- theme_minimal(base_size = 16, base_family = "Roboto") +
+custom_indicator_theme <- theme_minimal(base_size = 12, base_family = "Roboto") +
   theme(
-    axis.text.y = element_text(size = 16, color = "#2c3e50"),
-    axis.text.x = element_text(size = 16, color = "#2c3e50"),
-    axis.title.y = element_text(size = 18),
-    axis.title.x = element_text(size = 18),
-    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
-    legend.text = element_text(size = 16),
+    axis.text.x = element_text(size = 12, color = "#2c3e50"),
+    axis.text.y = element_text(size = 12, color = "#2c3e50"),
+    axis.title.y = element_text(size = 16),
+    axis.title.x = element_text(size = 16),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    legend.text = element_text(size = 12),
     legend.position = "top",
     panel.grid.major.y = element_blank(),
     panel.grid.minor.y = element_blank(),

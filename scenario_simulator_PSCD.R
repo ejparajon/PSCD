@@ -5,7 +5,7 @@ library(shiny)        # For building the interactive web app
 library(tidyverse)    # For data manipulation (dplyr, tidyr) and plotting (ggplot2)
 library(DT)           # For interactive tables
 library(bslib)        # For Bootstrap theming in Shiny
-library(shinyWidgets) # For advanced widgets, e.g., discrete sliders
+library(scales)       # For wrapping text
 
 # Load data
 base_data <- readRDS("state_indicator_data.rds")
@@ -27,83 +27,108 @@ indicator_scoring_details <- indicator_data$scoring
 
 source("indicator_info.R", local = TRUE)
 
-# UI ----------------------------------------------------------------------
+# --- UI ----------------------------------------------------------------------
 ui <- fluidPage(
   theme = bs_theme(version = 5, bootswatch = "minty"),
   
-  # --- Consolidated CSS ---
+  # CSS
   tags$head(
-    # Load Roboto font
-    tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"),
-    
-    # Apply styles
+    tags$link(rel = "stylesheet",
+              href = "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"),
     tags$style(HTML(sprintf("
-      /* --- Global Font and DataTable Text Wrap --- */
-      body, h1, h2, h3, h4, h5, h6, label, select, button, .nav, .tab-content, .well, .shiny-input-container {
-        font-family: 'Roboto', sans-serif !important;
-      }
-      .dataTables_wrapper .dataTable td { white-space: normal !important; }
-      .dataTables_wrapper { width: 100%%; }
+    /* --- Global Font --- */
+    body, h1, h2, h3, h4, h5, h6, label, select, button,
+    .nav, .tab-content, .well, .shiny-input-container {
+      font-family: 'Roboto', sans-serif !important;
+      font-size: 0.92rem !important;  
+      font-weight: 400 !important;
+      color: #2c3e50;
+    }
 
-      /* --- Slider Tab Spacing --- */
-      #indicatorSliders .nav, #indicatorSliders .nav-tabs { margin-bottom: 10px !important; }
-      #indicatorSliders .tab-content { margin-top: 10px !important; }
-      #indicatorSliders .shiny-input-container { padding-top: 6px !important; }
+    /* DataTable wrap */
+    .dataTables_wrapper .dataTable td { white-space: normal !important; }
+    .dataTables_wrapper { width: 100%%; }
 
-      /* Slider Numerical Value Labels */
-      .irs-min, .irs-max, .irs-single, .irs-from, .irs-to, .irs-label {
-        font-size: 0.95em !important; 
-        font-weight: bold !important;
-      }
+    /* --- Slider Spacing --- */
+    #indicatorSliders .nav, #indicatorSliders .nav-tabs { margin-bottom: 8px !important; }
+    #indicatorSliders .tab-content { margin-top: 8px !important; }
+    #indicatorSliders .shiny-input-container { padding-top: 4px !important; }
 
-      /* --- Tab Header Coloring --- */
-      li a[data-value='Consumer (C)'] { color: %s !important; }
-      li a[data-value='Structure (S)'] { color: %s !important; }
-      li a[data-value='Regional Market (M)'] { color: %s !important; }
+    /* Slider Labels */
+    .irs-min, .irs-max, .irs-single, .irs-from, .irs-to, .irs-label {
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+    }
 
-      li.active a[data-value='Consumer (C)'] { background-color: %s !important; color: white !important; font-weight: bold; border-color: %s !important; }
-      li.active a[data-value='Structure (S)'] { background-color: %s !important; color: white !important; font-weight: bold; border-color: %s !important; }
-      li.active a[data-value='Market (M)'] { background-color: %s !important; color: white !important; font-weight: bold; border-color: %s !important; }
+    /* --- Tab Header Text Colors --- */
+    li a[data-value='Consumer (C)']        { color: %s !important; font-weight: 500; }
+    li a[data-value='Structure (S)']       { color: %s !important; font-weight: 500; }
+    li a[data-value='Regional Market (M)'] { color: %s !important; font-weight: 500; }
 
-      /* --- Label Text Coloring by Category --- */
-      .consumer label { color: %s !important; font-weight: bold; }
-      .structure label { color: %s !important; font-weight: bold; }
-      .market label { color: %s !important; font-weight: bold; }
-    ",
-    COLOR_MAP["Consumer (C)"], COLOR_MAP["Structure (S)"], COLOR_MAP["Regional Market (M)"],
-    COLOR_MAP["Consumer (C)"], COLOR_MAP["Consumer (C)"],
-    COLOR_MAP["Structure (S)"], COLOR_MAP["Structure (S)"],
-    COLOR_MAP["Regional Market (M)"], COLOR_MAP["Regional Market (M)"],
-    COLOR_MAP["Consumer (C)"], COLOR_MAP["Structure (S)"], COLOR_MAP["Regional Market (M)"]
+    /* --- Active Tabs --- */
+    li.active a[data-value='Consumer (C)'] {
+      background-color: %s !important; color: white !important;
+      font-weight: 600; border-color: %s !important;
+    }
+    li.active a[data-value='Structure (S)'] {
+      background-color: %s !important; color: white !important;
+      font-weight: 600; border-color: %s !important;
+    }
+    li.active a[data-value='Market (M)'] {
+      background-color: %s !important; color: white !important;
+      font-weight: 600; border-color: %s !important;
+    }
+
+    /* --- Label Coloring by Category --- */
+    .consumer label { color: %s !important; font-weight: 500; }
+    .structure label { color: %s !important; font-weight: 500; }
+    .market label { color: %s !important; font-weight: 500; }
+
+  ",
+  COLOR_MAP["Consumer (C)"], COLOR_MAP["Structure (S)"], COLOR_MAP["Regional Market (M)"],
+  COLOR_MAP["Consumer (C)"], COLOR_MAP["Consumer (C)"],
+  COLOR_MAP["Structure (S)"], COLOR_MAP["Structure (S)"],
+  COLOR_MAP["Regional Market (M)"], COLOR_MAP["Regional Market (M)"],
+  COLOR_MAP["Consumer (C)"], COLOR_MAP["Structure (S)"], COLOR_MAP["Regional Market (M)"]
     )))
   ),
-  
-  titlePanel("Power Sector Competitiveness Dashboard Simulator"),
-  # Instructional text
-  
-  div(
-      style = "font-size: 16px; color: #2c3e50; margin-bottom: 20px; max-width: 800px;",
-      HTML("
-     <p>
-       Use the sliders on the left to explore how each policy indicator affects a state’s overall competitiveness score. 
-       Select a state and adjust the sliders to simulate alternative policy designs and see the impact on rankings, scores, and individual indicator values.
-     </p>
-
-<p>
-       Indicators are grouped into Consumer, Structure, and Regional Market categories. 
-       Navigate the tabs to switch between categories, and refer to the tables below for detailed definitions and scoring criteria.
-     </p>")),
-
-
   sidebarLayout(
     sidebarPanel(
       tags$div("Select a State:", style = "font-size: 18px; font-weight: bold; margin-bottom: 5px;"),
       selectInput("state", NULL, choices = base_data$State),
+      
       wellPanel(
-        h4("Adjust Indicators by Category", style = "font-weight: bold; color: #2c3e50;"),
+        h4("Adjust Indicators by Category",
+           style = "font-weight: 700 !important; color: #2c3e50;"),
         actionButton("reset", "Reset to Current Scoring"),
         hr(),
-        uiOutput("indicatorSliders")
+        # STATIC tabsetPanel of sliders created once at app startup
+        tags$div(
+          id = "indicatorSliders",
+          do.call(tabsetPanel, c(
+            id = "indicator_tabs",
+            lapply(unique(indicator_groups_lookup$Group), function(g) {
+              inds <- indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == g]
+              # inside each tab, create sliders for the indicators
+              tabPanel(title = g,
+                       tagList(
+                         lapply(inds, function(ind) {
+                           step_val <- indicator_steps[ind] %||% 0.25
+                           sliderInput(
+                             inputId = paste0("slider_", make.names(ind)),
+                             label = ind,
+                             min = 0,
+                             max = 1,
+                             value = 0,           # initial placeholder; server will update on state selection
+                             step = step_val,
+                             ticks = TRUE
+                           )
+                         })
+                       )
+              )
+            })
+          ))
+        )
       )
     ),
     
@@ -111,17 +136,30 @@ ui <- fluidPage(
       htmlOutput("totalScore"),
       plotOutput("barPlot", height = "550px"),
       hr(),
-      h3("Indicator Details", style = "font-weight: bold; color: #2c3e50;"),
+      h3("Indicator Details",    style = "font-weight: 700 !important; color: #2c3e50;"),
       uiOutput("indicatorDetailTabs")
     )
   )
 )
 
-# Server ------------------------------------------------------------------
+# --- Server ------------------------------------------------------------------
 server <- function(input, output, session) {
   `%||%` <- function(a, b) if (!is.null(a)) a else b
   
-  # Base indicator values
+  # Prepare stable IDs & precomputations (run once) 
+  # Add safe_id column to the lookup for consistent input IDs
+  indicator_groups_lookup <- indicator_groups_lookup %>%
+    mutate(safe_id = make.names(Indicator))
+  
+  # Precompute baseline totals/standardized for ranking (global)
+  baseline_scores_df <- base_data %>%
+    mutate(Total = rowSums(select(., -State), na.rm = TRUE),
+           Standardized = (Total / (ncol(select(., -State)))) * 100) %>%
+    select(State, Standardized)
+  
+  baseline_vec <- setNames(baseline_scores_df$Standardized, baseline_scores_df$State)
+  
+  # Helper to get current state's base values as named numeric vector
   base_values <- reactive({
     req(input$state)
     indicators <- setdiff(colnames(base_data), "State")
@@ -129,77 +167,73 @@ server <- function(input, output, session) {
     setNames(as.numeric(row[1, indicators]), indicators)
   })
   
-  # CSS classes for groups
-  get_css_class <- function(group_name) {
-    if (grepl("Consumer", group_name)) return("consumer")
-    if (grepl("Structure", group_name)) return("structure")
-    if (grepl("Regional Market", group_name)) return("market")
-    ""
-  }
-  
-  # Render sliders
-  output$indicatorSliders <- renderUI({
+  # When user changes state, update sliders (do not rebuild them)
+  observeEvent(input$state, {
     vals <- base_values()
-    req(vals)
-    valid_groups <- unique(indicator_groups_lookup$Group)
-    
-    group_tabs <- lapply(valid_groups, function(g) {
-      inds <- indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == g]
-      sliders <- lapply(inds, function(ind) {
-        sliderInput(
-          inputId = paste0("slider_", make.names(ind)),
-          label = ind,
-          min = 0,
-          max = 1,
-          value = vals[[ind]],
-          step = indicator_steps[ind] %||% 0.25
-        )
-      })
-      tabPanel(title = g, tagList(sliders))
-    })
-    
-    do.call(tabsetPanel, c(id = "indicator_tabs", group_tabs))
-  })
+    # update only sliders that exist (guard against name mismatches)
+    for (ind in names(vals)) {
+      input_id <- paste0("slider_", make.names(ind))
+      # only update if this input already exists in input (i.e. slider was rendered)
+      if (!is.null(input[[input_id]])) {
+        # use a single update call per input
+        updateSliderInput(session, input_id, value = vals[[ind]])
+      } else {
+        # If the input doesn't exist yet (shouldn't happen), skip silently
+        next
+      }
+    }
+  }, ignoreInit = FALSE)
   
-  # Current indicator values
+  # Current indicator values (read from inputs; fallback to base values)
   indicators <- reactive({
     vals <- base_values()
-    sapply(names(vals), function(ind) {
-      input[[paste0("slider_", make.names(ind))]] %||% vals[[ind]]
-    }) %>% setNames(names(vals))
+    out <- sapply(names(vals), function(ind) {
+      input_val <- input[[paste0("slider_", make.names(ind))]]
+      if (is.null(input_val)) {
+        vals[[ind]]
+      } else {
+        # ensure numeric
+        as.numeric(input_val)
+      }
+    }, simplify = TRUE, USE.NAMES = TRUE)
+    # keep as numeric named vector
+    setNames(as.numeric(out), names(vals))
   })
   
-  # Reset sliders
+  # Reset sliders to base values
   reset_sliders <- function() {
     vals <- base_values()
     for (ind in names(vals)) {
-      updateSliderInput(session, paste0("slider_", make.names(ind)), value = vals[[ind]])
+      input_id <- paste0("slider_", make.names(ind))
+      if (!is.null(input[[input_id]])) {
+        updateSliderInput(session, input_id, value = vals[[ind]])
+      }
     }
   }
   observeEvent(input$reset, { reset_sliders() })
-  observeEvent(input$state, { reset_sliders() })
   
-  # Total score
+  # Total score and state rank
   output$totalScore <- renderText({
     vals <- indicators()
-    req(vals)
-    total <- sum(vals)
+    req(vals, input$state)
+    
+    total <- sum(vals, na.rm = TRUE)
     standardized <- (total / length(vals)) * 100
     
-    all_scores <- base_data %>%
-      mutate(Total = rowSums(select(., -State), na.rm = TRUE),
-             Standardized = (Total / ncol(select(., -State))) * 100) %>%
-      mutate(Standardized = ifelse(State == input$state, standardized, Standardized)) %>%
-      arrange(desc(Standardized)) %>%
-      mutate(Rank = row_number())
-    
-    state_rank <- all_scores %>% filter(State == input$state) %>% pull(Rank)
-    
+    # compute dynamic rank relative to baseline quickly
+    # replace baseline for selected state with simulated standardized then compute rank
+    baseline_vec2 <- baseline_vec
+    baseline_vec2[input$state] <- standardized
+    state_rank <- rank(-baseline_vec2)[input$state]
+    # This controls text at top
     HTML(sprintf(
-      '<div style="font-size: 22px; font-weight: bold; color: #2c3e50;">
-       Standardized score (0–100%%) for %s: %.2f%% | Dynamic Rank: %d of %d Southeast states
-       </div>',
-      input$state, standardized, state_rank, nrow(all_scores)
+      '<div style="font-size: 18px; font-weight: bold; color: #2c3e50;">
+      Standardized score (0–100%%) for %s: %.2f%% | Dynamic Rank: %d of %d Southeast states
+    </div>',
+    input$state, 
+    standardized, 
+    as.integer(state_rank), 
+    length(baseline_vec2)
     ))
   })
   
@@ -211,41 +245,48 @@ server <- function(input, output, session) {
     df <- data.frame(
       Indicator = names(vals),
       Value = vals,
-      stringsAsFactors = FALSE) %>% 
-      left_join(indicator_groups_lookup, by = "Indicator")
+      stringsAsFactors = FALSE
+    ) %>%
+      left_join(indicator_groups_lookup %>% select(Indicator, Group), by = "Indicator")
     
     df$Label <- sprintf("%.2f", df$Value)
     df$Group <- factor(df$Group, levels = c("Consumer (C)", "Structure (S)", "Regional Market (M)"))
     
     ggplot(df, aes(x = reorder(Indicator, Value), y = Value, fill = Group)) +
-      geom_bar(stat = "identity", color = "black", width = 0.8) +
-      geom_label(
-        data = df,
-        aes(x = reorder(Indicator, Value), y = Value, label = Label),
-        inherit.aes = FALSE, size = 5.5, label.size = NA, fill = "white", color = "black", hjust = -0.1) +
+      geom_col(color = "black", width = 0.65) +
+      geom_text(aes(label = Label), hjust = -0.05, size = 4) +
       ylim(0, 1.05) +
       coord_flip() +
       scale_fill_manual(values = COLOR_MAP, name = "Category") +
-      labs(title = paste("Indicator Values for", input$state), x = "", y = "Score (0–1)") +
+      labs(title = paste0("Indicator Values : ", input$state),
+           subtitle = "Scores range 0–1 (higher is better)",
+           x = NULL, y = "Score (0–1)") +
+      scale_x_discrete(labels = label_wrap(width = 35)) +
       custom_indicator_theme
   })
   
-  
-  # Indicator details
+  # Indicator details (precomputed once)
   indicator_details_df <- data.frame(
     Name = names(indicator_info),
     "Short Description" = unlist(indicator_info, use.names = FALSE),
     "Scoring Criteria" = unlist(indicator_scoring_details, use.names = FALSE),
     stringsAsFactors = FALSE,
     check.names = FALSE
-  ) %>% merge(indicator_groups_lookup, by.x = "Name", by.y = "Indicator")
+  ) %>%
+    merge(indicator_groups_lookup, by.x = "Name", by.y = "Indicator")
   
+  # helper to render tables (keeps same order as indicator_groups_lookup)
   render_group_table <- function(group_name, id_suffix) {
     output_name <- paste0("detailsTable_", id_suffix)
     output[[output_name]] <- renderDataTable({
       df <- subset(indicator_details_df, Group == group_name)
-      df <- df[match(indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == group_name], df$Name), ]
+      # preserve ordering in the lookup
+      order_vec <- indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == group_name]
+      df <- df[match(order_vec, df$Name), ]
+      # removing columns I don't want to show up
       df$Group <- NULL
+      df$safe_id <- NULL   
+      # building the table
       datatable(df, escape = FALSE, rownames = FALSE,
                 options = list(pageLength = 10, autoWidth = FALSE, scrollX = TRUE,
                                dom = "t", paging = FALSE, ordering = FALSE,
@@ -274,6 +315,5 @@ server <- function(input, output, session) {
   })
 }
 
-# Run the app -------------------------------------------------------------
+# Run the app
 shinyApp(ui, server)
-

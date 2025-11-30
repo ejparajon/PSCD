@@ -35,6 +35,7 @@ for (ind in discrete_indicators) {
 # Re-saving as a .rds
 saveRDS(base_data,"state_indicator_data.rds")
 
+# For re-saving the indicator options
 indicator_steps <- c(
   "Third Party PPA (C)" = 0.5,
   "Net Metering (C)" = 0.25,
