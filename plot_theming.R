@@ -22,23 +22,23 @@ showtext_auto()
 sysfonts::font_add_google("Roboto", "Roboto")
 
 # Custom theme for plot
-custom_indicator_theme <- theme_minimal(base_size = 13, base_family = "Roboto") +
+custom_indicator_theme <- theme_minimal(base_size = 14, base_family = "Roboto") +
   theme(
     # Axis text: slightly smaller for laptop screens 
-    axis.text.x = element_text(size = 12, color = "#2c3e50"),
-    axis.text.y = element_text(size = 12, color = "#2c3e50"),
+    axis.text.x = element_text(size = 13, color = "#2c3e50"),
+    axis.text.y = element_text(size = 13, color = "#2c3e50"),
     
     # Axis titles: lighter and smaller to reduce vertical space
-    axis.title.y = element_text(size = 14, margin = margin(r = 6)),
-    axis.title.x = element_text(size = 14, margin = margin(t = 6)),
+    axis.title.y = element_text(size = 15, margin = margin(r = 6)),
+    axis.title.x = element_text(size = 15, margin = margin(t = 6)),
     
     # Title: centered
     plot.title = element_text(size = 16, hjust = 0.5, face = "bold"),
     
     # Legend: 
     legend.position = "bottom",
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 13, face = "bold"),
     
     # Reduce left/right padding so long labels fit better
     plot.margin = margin(t = 10, r = 25, b = 10, l = 10),

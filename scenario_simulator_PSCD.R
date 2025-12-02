@@ -262,7 +262,7 @@ server <- function(input, output, session) {
       geom_text(aes(label = Label),
                 hjust = -0.05,
                 vjust = 0.5, 
-                size = 4,
+                size = 4.5,
                 position = position_stack(vjust = 0.5)) +
       ylim(0, 1.02) +
       coord_flip(clip = "off") +                      # prevents text clipping on small screens
