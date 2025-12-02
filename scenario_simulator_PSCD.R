@@ -25,7 +25,7 @@ indicator_groups_lookup <- indicator_data$groups
 indicator_info <- indicator_data$info
 indicator_scoring_details <- indicator_data$scoring
 
-source("indicator_info.R", local = TRUE)
+source("plot_theming.R", local = TRUE)
 
 # --- UI ----------------------------------------------------------------------
 ui <- fluidPage(
@@ -259,8 +259,11 @@ server <- function(input, output, session) {
     
     ggplot(df, aes(x = reorder(Indicator, Value), y = Value, fill = Group)) +
       geom_col(color = "black", width = 0.58) +       
-      geom_text(aes(label = Label), 
-                hjust = -0.1, size = 3.3) +          
+      geom_text(aes(label = Label),
+                hjust = -0.05,
+                vjust = 0.5, 
+                size = 4,
+                position = position_stack(vjust = 0.5)) +
       ylim(0, 1.02) +
       coord_flip(clip = "off") +                      # prevents text clipping on small screens
       scale_fill_manual(values = COLOR_MAP, name = "Category") +
@@ -268,7 +271,7 @@ server <- function(input, output, session) {
         title = NULL,                                
         x = NULL, 
         y = "Score: 0 (low) - 1 (high)") +
-      scale_x_discrete(labels = function(x) str_wrap(x, width = 28)) +  
+      scale_x_discrete(labels = function(x) str_wrap(x, width = 30)) +  
       custom_indicator_theme
   })
   
