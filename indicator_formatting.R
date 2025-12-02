@@ -1,5 +1,5 @@
 # This code file contains a variety of information used to display the indicators in the sliders, graph, and table
-#Define custom step score sizes for each indicator (GLOBAL)
+# Define custom step score sizes for each indicator (GLOBAL)
 library(tidyverse)
 # For re-saving the csv
 base_data <- read.csv("state_indicator_data.csv",check.names = FALSE)
@@ -50,13 +50,13 @@ indicator_info <- list(
   
   # --- CONSUMER INDICATORS ---
   "Third Party PPA (C)" = 
-    "The Third-Party Power Purchase Agreements indicator captures whether states permit customers to enter into contracts with third-party developers that install and operate energy systems on the customer’s property and sell power generated to the customer at a fixed rate.",
+    "Indicates whether states permit customers to enter into contracts with third-party developers that install and operate energy systems on the customer’s property and sell power generated to the customer at a fixed rate.",
   
   "Net Metering (C)" = 
-    "The Net Metering indicator measures the extent to which states enable or require billing systems that provides credits to owners of distributed generation (e.g., solar) that return excess electricity generation to the grid.",
+    "This indicator measures the extent to which states enable or require billing systems that provides credits to owners of distributed generation (e.g., solar) that return excess electricity generation to the grid.",
   
   "Utility Green Tariffs (C)" = 
-    "The Utility Green Tariffs indicator measures the prevalence of utilities in a state that allow large commercial and industrial customers to buy electricity generated from renewable energy projects at a special rate.",
+    "This indicator measures the prevalence of utilities in a state that allow large commercial and industrial customers to buy electricity generated from renewable energy projects at a special rate.",
   
   "Residential Retail Choice (C)" = 
     "Indicates whether residential customers may select an alternative electricity supplier instead of the default utility.",

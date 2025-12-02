@@ -49,6 +49,11 @@ ui <- fluidPage(
     .dataTables_wrapper .dataTable td { white-space: normal !important; }
     .dataTables_wrapper { width: 100%%; }
 
+    /* Reduce DataTables font size slightly */
+      .dataTables_wrapper .dataTable td,
+      .dataTables_wrapper .dataTable th {
+        font-size: 0.85rem !important;}
+
     /* --- Slider Spacing --- */
     #indicatorSliders .nav, #indicatorSliders .nav-tabs { margin-bottom: 8px !important; }
     #indicatorSliders .tab-content { margin-top: 8px !important; }
@@ -253,14 +258,17 @@ server <- function(input, output, session) {
     df$Group <- factor(df$Group, levels = c("Consumer (C)", "Structure (S)", "Regional Market (M)"))
     
     ggplot(df, aes(x = reorder(Indicator, Value), y = Value, fill = Group)) +
-      geom_col(color = "black", width = 0.65) +
-      geom_text(aes(label = Label), hjust = -0.05, size = 4) +
-      ylim(0, 1.05) +
-      coord_flip() +
+      geom_col(color = "black", width = 0.58) +       
+      geom_text(aes(label = Label), 
+                hjust = -0.1, size = 3.3) +          
+      ylim(0, 1.02) +
+      coord_flip(clip = "off") +                      # prevents text clipping on small screens
       scale_fill_manual(values = COLOR_MAP, name = "Category") +
-      labs(title = paste0("Indicator Values : ", input$state),
-           x = NULL, y = "Score: 0 (low) - 1 (high)") +
-      scale_x_discrete(labels = label_wrap(width = 35)) +
+      labs(
+        title = NULL,                                
+        x = NULL, 
+        y = "Score: 0 (low) - 1 (high)") +
+      scale_x_discrete(labels = function(x) str_wrap(x, width = 28)) +  
       custom_indicator_theme
   })
   

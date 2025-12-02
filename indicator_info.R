@@ -35,15 +35,28 @@ theme_set(
 )
 
 # Custom theme for indicator bar charts
-custom_indicator_theme <- theme_minimal(base_size = 12, base_family = "Roboto") +
+custom_indicator_theme <- theme_minimal(base_size = 11, base_family = "Roboto") +
   theme(
-    axis.text.x = element_text(size = 12, color = "#2c3e50"),
-    axis.text.y = element_text(size = 12, color = "#2c3e50"),
-    axis.title.y = element_text(size = 16),
-    axis.title.x = element_text(size = 16),
-    plot.title = element_text(size = 18, hjust = 0.5),
-    legend.text = element_text(size = 12),
-    legend.position = "top",
+    # Axis text: slightly smaller for laptop screens 
+    axis.text.x = element_text(size = 10, color = "#2c3e50"),
+    axis.text.y = element_text(size = 10, color = "#2c3e50"),
+    
+    # Axis titles: lighter and smaller to reduce vertical space
+    axis.title.y = element_text(size = 12, margin = margin(r = 6)),
+    axis.title.x = element_text(size = 12, margin = margin(t = 6)),
+    
+    # Title: centered
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+    
+    # Legend: 
+    legend.position = "bottom",
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10, face = "bold"),
+    
+    # Reduce left/right padding so long labels fit better
+    plot.margin = margin(t = 10, r = 25, b = 10, l = 10),
+    
+    # Clean up grid lines for clarity on small screens
     panel.grid.major.y = element_blank(),
     panel.grid.minor.y = element_blank(),
     panel.grid.minor.x = element_blank()
