@@ -1,18 +1,4 @@
-# --------------------------------------------------
-# Indicator Configuration and Dashboard Styling
-# --------------------------------------------------
-
-# Color mapping for indicator categories
-COLOR_MAP <- c(
-  "Consumer (C)" = "#dadaeb",
-  "Structure (S)" = "#9e9ac8",
-  "Regional Market (M)" = "#54278f"
-)
-
-# ---------------------------
-# Global ggplot Theme
-# ---------------------------
-
+# --- Dashboard Styling ----------------------------------------------------------------------
 # Load required packages
 library(ggplot2)
 library(showtext)
@@ -21,7 +7,15 @@ library(sysfonts)
 showtext_auto()
 sysfonts::font_add_google("Roboto", "Roboto")
 
-# Custom theme for plot
+# Color mapping for indicator categories
+COLOR_MAP <- c(
+  "Consumer (C)" = "#dadaeb",
+  "Structure (S)" = "#9e9ac8",
+  "Regional Market (M)" = "#54278f"
+)
+
+# --- ggplot Theme ----------------------------------------------------------------------
+
 custom_indicator_theme <- theme_minimal(base_size = 14, base_family = "Roboto") +
   theme(
     # Axis text: slightly smaller for laptop screens 
@@ -43,7 +37,7 @@ custom_indicator_theme <- theme_minimal(base_size = 14, base_family = "Roboto") 
     # Reduce left/right padding so long labels fit better
     plot.margin = margin(t = 10, r = 25, b = 10, l = 10),
     
-    # Clean up grid lines for clarity on small screens
+    # Clean up grid lines
     panel.grid.major.y = element_blank(),
     panel.grid.minor.y = element_blank(),
     panel.grid.minor.x = element_blank()
