@@ -1,11 +1,11 @@
 # Preamble ----------------------------------------------------------------
 
 # Loading required packages
-library(shiny)        # For building the interactive web app
-library(tidyverse)    # For data manipulation (dplyr, tidyr, stringr) and plotting (ggplot2)
-library(DT)           # For interactive tables
-library(bslib)        # For Bootstrap theming in Shiny
-library(scales)       # For wrapping text
+library(shiny)        
+library(tidyverse)    
+library(DT)           
+library(bslib)        
+library(scales)      
 
 # Load data
 base_data <- readRDS("state_indicator_data.rds")
@@ -35,12 +35,14 @@ ui <- fluidPage(
   tags$head(
     tags$link(rel = "stylesheet",
               href = "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"),
-    tags$style(HTML(sprintf("
+    tags$style(HTML(
+      sprintf(
+        "
     /* --- Global Font --- */
     body, h1, h2, h3, h4, h5, h6, label, select, button,
     .nav, .tab-content, .well, .shiny-input-container {
       font-family: 'Roboto', sans-serif !important;
-      font-size: 0.92rem !important;  
+      font-size: 0.92rem !important;
       font-weight: 400 !important;
       color: #2c3e50;
     }
@@ -90,58 +92,61 @@ ui <- fluidPage(
     .market label { color: %s !important; font-weight: 500; }
 
   ",
-  COLOR_MAP["Consumer (C)"], COLOR_MAP["Structure (S)"], COLOR_MAP["Regional Market (M)"],
-  COLOR_MAP["Consumer (C)"], COLOR_MAP["Consumer (C)"],
-  COLOR_MAP["Structure (S)"], COLOR_MAP["Structure (S)"],
-  COLOR_MAP["Regional Market (M)"], COLOR_MAP["Regional Market (M)"],
-  COLOR_MAP["Consumer (C)"], COLOR_MAP["Structure (S)"], COLOR_MAP["Regional Market (M)"]
-    )))
-  ),
-  sidebarLayout(
-    sidebarPanel(
-      tags$div("Select a State:", style = "font-size: 18px; font-weight: bold; margin-bottom: 5px;"),
-      selectInput("state", NULL, choices = base_data$State),
-      
-      wellPanel(
-        h4("Adjust Indicators by Category",
-           style = "font-weight: 700 !important; color: #2c3e50;"),
-        actionButton("reset", "Reset to Original Scoring"),
-        hr(),
-        # STATIC tabsetPanel of sliders created once at app startup
-        tags$div(
-          id = "indicatorSliders",
-          do.call(tabsetPanel, c(
-            id = "indicator_tabs",
-            lapply(unique(indicator_groups_lookup$Group), function(g) {
-              inds <- indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == g]
-              # inside each tab, create sliders for the indicators
-              tabPanel(title = g,
-                       tagList(
-                         lapply(inds, function(ind) {
-                           step_val <- indicator_steps[ind] %||% 0.25
-                           sliderInput(
-                             inputId = paste0("slider_", make.names(ind)),
-                             label = ind,
-                             min = 0,
-                             max = 1,
-                             value = 0,           # initial placeholder; server will update on state selection
-                             step = step_val,
-                             ticks = TRUE
-                           )
-                         })
-                       )
-              )
-            })
-          ))
-        )
+  COLOR_MAP["Consumer (C)"],
+  COLOR_MAP["Structure (S)"],
+  COLOR_MAP["Regional Market (M)"],
+  COLOR_MAP["Consumer (C)"],
+  COLOR_MAP["Consumer (C)"],
+  COLOR_MAP["Structure (S)"],
+  COLOR_MAP["Structure (S)"],
+  COLOR_MAP["Regional Market (M)"],
+  COLOR_MAP["Regional Market (M)"],
+  COLOR_MAP["Consumer (C)"],
+  COLOR_MAP["Structure (S)"],
+  COLOR_MAP["Regional Market (M)"]
       )
-    ),
+    ))
+  ),
+  sidebarLayout(sidebarPanel(
+    tags$div("Select a State:", style = "font-size: 18px; font-weight: bold; margin-bottom: 5px;"),
+    selectInput("state", NULL, choices = base_data$State),
     
+    wellPanel(
+      h4("Adjust Indicators by Category",
+         style = "font-weight: 700 !important; color: #2c3e50;"),
+      actionButton("reset", "Reset to Original Scoring"),
+      hr(),
+      # tabsetPanel of sliders
+      tags$div(id = "indicatorSliders",
+               do.call(
+                 tabsetPanel, c(id = "indicator_tabs",
+                                lapply(unique(indicator_groups_lookup$Group), function(g) {
+                                  inds <-
+                                    indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == g]
+                                  # inside each tab, create sliders for the indicators
+                                  tabPanel(title = g,
+                                           tagList(lapply(inds, function(ind) {
+                                             step_val <- indicator_steps[ind] %||% 0.25
+                                             sliderInput(
+                                               inputId = paste0("slider_", make.names(ind)),
+                                               label = ind,
+                                               min = 0,
+                                               max = 1,
+                                               value = 0,
+                                               step = step_val,
+                                               ticks = TRUE
+                                             )
+                                           })))
+                                }))
+               ))
+    )
+  ), 
+    # Layout of app
     mainPanel(
       htmlOutput("totalScore"),
       plotOutput("barPlot", height = "550px"),
       hr(),
-      h3("Indicator Details",    style = "font-weight: 700 !important; color: #2c3e50;"),
+      h3("Indicator Details", style = "font-weight: 700 !important; color: #2c3e50;"),
       uiOutput("indicatorDetailTabs")
     )
   )
@@ -149,10 +154,9 @@ ui <- fluidPage(
 
 # --- Server ------------------------------------------------------------------
 server <- function(input, output, session) {
-  # Define a null-coalescing operator that returns its left-hand side (a) if it's not NULL, otherwise it returns the right-hand side (b); useful for creating default settings
+  # Define a null-coalescing operator that returns its left-hand side (a) if it's not NULL, otherwise it returns the right-hand side (b)
   `%||%` <- function(a, b) if (!is.null(a)) a else b
-  # Prepare stable IDs & precomputations (run once) 
-  # Add safe_id column to the lookup for consistent input IDs
+  # Prepare stable IDs (consistent input IDs) & precomputations (run once) 
   indicator_groups_lookup <- indicator_groups_lookup %>%
     mutate(safe_id = make.names(Indicator))
   
@@ -172,24 +176,22 @@ server <- function(input, output, session) {
     setNames(as.numeric(row[1, indicators]), indicators)
   })
   
-  # When user changes state, update sliders (do not rebuild them)
+  # When user changes state, update sliders
   observeEvent(input$state, {
     vals <- base_values()
-    # update only sliders that exist (guard against name mismatches)
     for (ind in names(vals)) {
       input_id <- paste0("slider_", make.names(ind))
-      # only update if this input already exists in input (i.e. slider was rendered)
+      # only update if this input already exists in input
       if (!is.null(input[[input_id]])) {
-        # use a single update call per input
         updateSliderInput(session, input_id, value = vals[[ind]])
       } else {
-        # If the input doesn't exist yet (shouldn't happen), skip silently
+        # If the input doesn't exist yet, skip silently
         next
       }
     }
   }, ignoreInit = FALSE)
   
-  # Current indicator values (read from inputs; fallback to base values)
+  # Current indicator values
   indicators <- reactive({
     vals <- base_values()
     out <- sapply(names(vals), function(ind) {
@@ -197,11 +199,9 @@ server <- function(input, output, session) {
       if (is.null(input_val)) {
         vals[[ind]]
       } else {
-        # ensure numeric
         as.numeric(input_val)
       }
     }, simplify = TRUE, USE.NAMES = TRUE)
-    # keep as numeric named vector
     setNames(as.numeric(out), names(vals))
   })
   
@@ -225,8 +225,7 @@ server <- function(input, output, session) {
     total <- sum(vals, na.rm = TRUE)
     standardized <- (total / length(vals)) * 100
     
-    # compute dynamic rank relative to baseline quickly
-    # replace baseline for selected state with simulated standardized then compute rank
+    # compute dynamic rank relative to baseline
     baseline_vec2 <- baseline_vec
     baseline_vec2[input$state] <- standardized
     state_rank <- rank(-baseline_vec2)[input$state]
@@ -265,7 +264,7 @@ server <- function(input, output, session) {
                 size = 4.5,
                 position = position_stack(vjust = 0.5)) +
       ylim(0, 1.02) +
-      coord_flip(clip = "off") +                      # prevents text clipping on small screens
+      coord_flip(clip = "off") +                      
       scale_fill_manual(values = COLOR_MAP, name = "Category") +
       labs(
         title = NULL,                                
@@ -274,8 +273,9 @@ server <- function(input, output, session) {
       scale_x_discrete(labels = function(x) str_wrap(x, width = 30)) +  
       custom_indicator_theme
   })
-  
-  # Indicator details (precomputed once)
+  # Details table
+
+  # Indicator details for table
   indicator_details_df <- data.frame(
     Name = names(indicator_info),
     "Short Description" = unlist(indicator_info, use.names = FALSE),
@@ -285,17 +285,17 @@ server <- function(input, output, session) {
   ) %>%
     merge(indicator_groups_lookup, by.x = "Name", by.y = "Indicator")
   
-  # helper to render tables (keeps same order as indicator_groups_lookup)
+  # helper to render tables
   render_group_table <- function(group_name, id_suffix) {
     output_name <- paste0("detailsTable_", id_suffix)
     output[[output_name]] <- renderDataTable({
       df <- subset(indicator_details_df, Group == group_name)
-      # preserve ordering in the lookup
       order_vec <- indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == group_name]
       df <- df[match(order_vec, df$Name), ]
       # removing columns I don't want to show up
       df$Group <- NULL
-      df$safe_id <- NULL   
+      df$safe_id <- NULL  
+      
       # building the table
       datatable(df, escape = FALSE, rownames = FALSE,
                 options = list(pageLength = 10, autoWidth = FALSE, scrollX = TRUE,
