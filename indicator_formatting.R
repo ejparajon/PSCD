@@ -50,19 +50,19 @@ indicator_info <- list(
   
   # --- CONSUMER INDICATORS ---
   "Third Party PPA (C)" = 
-    "Indicates whether states permit customers to enter into contracts with third-party developers that install and operate energy systems on the customer’s property and sell power generated to the customer at a fixed rate.",
+    "Captures whether states permit customers to enter into agreements with third-party developers that install and operate energy systems on the customer’s property and sell power generated to the customer at a contracted rate.",
   
   "Net Metering (C)" = 
-    "This indicator measures the extent to which states enable or require billing systems that provides credits to owners of distributed generation (e.g., solar) that return excess electricity generation to the grid.",
+    "Measures the extent to which states enable or limit billing systems that provide credits to owners of distributed generation (e.g., solar) that return excess electricity generation to the grid.",
   
   "Utility Green Tariffs (C)" = 
-    "This indicator measures the prevalence of utilities in a state that allow large commercial and industrial customers to buy electricity generated from renewable energy projects at a special rate.",
+    "Measures the prevalence of large utilities in a state that allow large commercial and industrial customers to buy electricity generated from renewable energy projects at a special rate.",
   
   "Residential Retail Choice (C)" = 
-    "Indicates whether residential customers may select an alternative electricity supplier instead of the default utility.",
+    "Evaluates whether state policy enables residential customers to choose alternative electricity suppliers other than the incumbent utility.",
   
   "Commercial and Industrial Retail Choice (C)" = 
-    "Indicates whether commercial and industrial customers may choose an alternative electricity supplier instead of the default utility.",
+    "Evaluates whether state policy enables commercial and industrial customers to choose alternative electricity suppliers other than the incumbent utility.",
   
   
   # --- Structure INDICATORS ---
@@ -70,32 +70,32 @@ indicator_info <- list(
     "Indicates whether state policy authorizes municipalities to form their own utility.",
   
   "Presence of a Consumer Advocate (S)" =
-    "Indicates whether the state has an independent and statutorily authorized consumer advocate representing ratepayer interests.",
+    "Evaluates whether states have a consumer advocate office that represents consumer interests in utility proceedings.",
   
   "Community Choice Aggregation (S)" =
-    "Indicates whether state policy authorizes local governments to aggregate electricity demand and procure power on behalf of residents.",
+    "Measures the presence, or lack thereof, of state policy enabling municipal choice in procuring electricity from a provider other than the incumbent utility on behalf of the area’s population.",
   
   "Customer Concentration (S)" =
-    "Herfindahl–Hirschman Index (HHI) based on residential customer counts, measuring concentration among utilities.",
+    "Assesses how concentrated each state’s utility market overall is by calculating the Herfindahl-Hirschman Index (HHI) from customer counts, following Department of Justice antitrust guidelines.",
   
   "Generation Concentration (S)" =
-    "Herfindahl–Hirschman Index (HHI) based on nameplate generating capacity, measuring market concentration among electricity generators.",
+    "Assesses how concentrated each state’s utility generation capacity is by calculating the Herfindahl-Hirschman Index (HHI) from customer counts and Department of Justice antitrust guidelines.",
   
   "Interconnection Standards (S)" =
-    "Measures the presence, or lack thereof, of a state interconnection standard or guideline for investor owned utilities, or in the absence of a state policy, whether the state’s largest utility has one.",
+    "Measures the presence, or lack thereof, of a state interconnection standard or guideline for investor-owned utilities, or in the absence of a state policy, whether the state’s largest utility has one.",
   
   "Procurement Requirements (S)" =
-    "Evaluates the presence of competitive procurement practices for new generation, either through state policy and/or through wholesale markets.",
+    "Measures the presence, or lack thereof, of state rules on how utilities may acquire new generation sources. This can include requiring or encouraging competitive procurement for all or some new generation in lieu of defaulting to a default utility-led approach.",
   
   # --- MARKET INDICATORS ---
   "Market Participation (M)" =
-    "Measures the extent of state participation in organized wholesale electricity markets (RTO/ISO) or SEEM.",
+    "Evaluates the extent that a state’s utility(ies) participates in a bilateral trading market, such as the Southeast Energy Exchange Market (SEEM), and/or a wholesale electricity market such as a regional transmission organization (RTO)/independent system operator (ISO).",
   
   "Civil Society Participation Role in Wholesale Market (M)" =
-    "Measures the degree of formal civil society participation in wholesale market governance structures.",
+    "Evaluates the ability for civil society organizations (e.g. environmental organizations) to participate within the governance structure of a wholesale market (regional transmission organization (RTO) / independent system operator (ISO)), when states that participate in such a market, formalizing multi-actor participation in the process.",
   
   "State Authority Role in Wholesale Market (M)" =
-    "Measures the degree of formal state authority participation in wholesale market governance based on RTO/ISO rules."
+    "Focuses on a state's role within the governance structure of a wholesale market (regional transmission organization (RTO) / independent system operator (ISO)), when states that participate in such a market, formalizing multi-actor participation in the process."
 )
 
 # --- List of SCORING DETAILS for table---
