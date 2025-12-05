@@ -120,10 +120,10 @@ indicator_scoring_details <- list(
   
   # --- Structure INDICATORS ---
   "Option for Municipal Ownership of Utilities (S)" =
-    "1.0: State policy enables municipalities to form electric utilities.<br>0.0: No enabling policy.",
+    "1.0: State policy enables municipalities to create municipal electric authorities.<br>0.0: No enabling policy.",
   
   "Presence of a Consumer Advocate (S)" =
-    "1.0: State has a public consumer advocate.<br>0.0: No consumer advocate.",
+    "1.0: State has a public consumer advocate.<br>0.0: No policy or program in place.",
   
   "Community Choice Aggregation (S)" =
     "1.0: CCA permitted in state policy.<br>0.0: CCA not permitted.",
@@ -135,7 +135,7 @@ indicator_scoring_details <- list(
     "1.0: HHI < 1000 (not concentrated).<br>0.5: 1000–1799 (moderately concentrated).<br>0.0: ≥1800 (highly concentrated).",
   
   "Interconnection Standards (S)" =
-    "1.0: State Standard with no system size restrictions OR non-IOU largest utility standard with no size limits.<br>0.66: State Standard with system size restriction(s), or if state’s largest utility is non-investor owned utility, the utility’s guideline/policy/procedure with no system size limit.<br>0.33: State Guidelines, or a guideline/policy/procedure from the state’s largest utility if no State Standard/Guideline but largest utility is investor-owned.<br>0.0: No standards/guidelines.",
+    "1.0: State Standard with no system size restriction(s), or if state’s largest utility is a non-investor owned utility (i.e. public utility), the utility’s guideline/policy/procedure with no system size limit.<br>0.66: State Standard with system size restriction(s), or if state’s largest utility is a non-investor owned utility (i.e. public utility), the utility’s guideline/policy/procedure with no system size limit.<br>0.33: State Guidelines, or a guideline/policy/procedure from the state’s largest utility if no State Standard/Guideline but largest utility is investor-owned.<br>0.0: No standards/guidelines.",
   
   "Procurement Requirements (S)" =
     "1.0: All-source solicitations or state has >66% of customers participating in a wholesale market.<br>Single-source competitive solicitations or no competitive solicitation requirements but has >33% of customers participating in a wholesale market.<br>0.33: No competitive solicitation requirements (except limited competitive procurement for renewables).<br>0.0: No competitive solicitation requirements.",
