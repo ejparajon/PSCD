@@ -142,7 +142,8 @@ indicator_scoring_details <- list(
   
   # --- MARKET INDICATORS ---
   "Regional Market Participation (M)" =
-    "1.0: ≥90% of customers in RTO/ISO.<br>0.8: 50–89.9%.<br>0.6: 25–49.9%.<br>0.4: SEEM participation + 0.1–24.9% RTO.<br>0.2: SEEM-only, 0% RTO.<br>0.0: No SEEM and no RTO participation.",
+    "1.0: ≥90% of customers in RTO/ISO.<br>0.8: 50–89.9%.<br>0.6: 25–49.9%.<br>0.4: SEEM participation + 0.1–24.9% RTO.<br>0.2: SEEM-only, 0% RTO.<br>0.0: No SEEM and no RTO participation.<br>
+   Note: A state receives a score based on the RTO/ISO it is in. If a state is in multiple markets, the score is an average of those. If a state is partially in a market(s), but partially not in a market, it will be an average of those.",
   
   "Civil Society Participation Role in Wholesale Regional Market (M)" =
     "1.0: Open membership (MISO, CAISO).<br>
