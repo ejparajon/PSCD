@@ -7,7 +7,7 @@ Repo contains the following:
 Code for running and formatting the Shiny app in the Power Sector Competitiveness Dashboard.
 
 `indicator_formatting.R`
-Functions for cleaning, transforming, and standardizing indicator values and labels. Generates `indicator_data.rds`.
+Functions for cleaning, transforming, and standardizing indicator values and labels. Generates `indicator_data.rds` and `state_indicator_data.rds`.
 
 `indicator_data.rds`
 Processed indicator information used for the dashboard.
