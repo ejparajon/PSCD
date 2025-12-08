@@ -31,8 +31,8 @@ custom_indicator_theme <- theme_minimal(base_size = 14, base_family = "Roboto") 
     
     # Legend: 
     legend.position = "bottom",
-    legend.text = element_text(size = 13),
-    legend.title = element_text(size = 13, face = "bold"),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 12, face = "bold"),
     
     # Reduce left/right padding so long labels fit better
     plot.margin = margin(t = 10, r = 25, b = 10, l = 10),
