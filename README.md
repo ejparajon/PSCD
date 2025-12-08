@@ -1,5 +1,6 @@
 # PSCD
 Policy simulator tool component for the [Power Sector Competitiveness Dashboard](https://nicholasinstitute.duke.edu/project/power-sector-competitiveness-dashboard).
+
 Repo contains the following:
 
 `scenario_simulator_PSCD.R`
