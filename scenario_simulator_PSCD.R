@@ -11,6 +11,9 @@ library(scales)
 base_data <- readRDS("state_indicator_data.rds")
 indicator_data <- readRDS("indicator_data.rds")
 
+# Default state
+DEFAULT_STATE <- base_data$State[1]
+
 # Clean column names
 colnames(base_data) <- colnames(base_data) %>%
   str_trim() %>%
@@ -27,7 +30,7 @@ indicator_scoring_details <- indicator_data$scoring
 
 source("plot_theming.R", local = TRUE)
 
-# Define a null-coalescing operator for use throughout
+# Define a null-coalescing operator for use throughout to set defaults (steps etc.)
 # Returns left-hand side (a) if  not NULL, otherwise it returns the right-hand side (b)
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
@@ -127,7 +130,12 @@ ui <- fluidPage(
   ),
   sidebarLayout(sidebarPanel(
     tags$div("Select a State:", style = "font-size: 18px; font-weight: bold; margin-bottom: 5px;"),
-    selectInput("state", NULL, choices = base_data$State),
+    selectInput(
+      "state",
+      NULL,
+      choices = base_data$State,
+      selected = DEFAULT_STATE
+    ),
     
     wellPanel(
       h4("Adjust Indicators by Category",
@@ -142,19 +150,32 @@ ui <- fluidPage(
                                   inds <-
                                     indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == g]
                                   # inside each tab, create sliders for the indicators
-                                  tabPanel(title = g,
-                                           tagList(lapply(inds, function(ind) {
-                                             step_val <- indicator_steps[ind] %||% 0.25
-                                             sliderInput(
-                                               inputId = paste0("slider_", make.names(ind)),
-                                               label = ind,
-                                               min = 0,
-                                               max = 1,
-                                               value = 0,
-                                               step = step_val,
-                                               ticks = TRUE
-                                             )
-                                           })))
+                                  tabPanel(
+                                    title = g,
+                                    tagList(
+                                      # setting initial values
+                                      lapply(inds, function(ind) {
+                                        step_val <- indicator_steps[ind] %||% 0.25
+                                        
+                                        init_val <- base_data[base_data$State == DEFAULT_STATE, ind, drop = TRUE]
+                                        init_val <- as.numeric(init_val)
+                                        
+                                        if (length(init_val) != 1 || is.na(init_val)) {
+                                          init_val <- 0
+                                        }
+                                        
+                                        sliderInput(
+                                          inputId = paste0("slider_", make.names(ind)),
+                                          label = ind,
+                                          min = 0,
+                                          max = 1,
+                                          value = init_val,
+                                          step = step_val,
+                                          ticks = TRUE
+                                        )
+                                      })
+                                    )
+                                  )
                                 }))
                )),
       
@@ -197,10 +218,6 @@ ui <- fluidPage(
 
 # --- Server ------------------------------------------------------------------
 server <- function(input, output, session) {
-  # Prepare consistent input IDs & precomputations (run once) 
-  indicator_groups_lookup <- indicator_groups_lookup %>%
-    mutate(safe_id = make.names(Indicator))
-  
   # Precompute baseline totals/standardized for ranking
   baseline_scores_df <- base_data %>%
     mutate(Total = rowSums(select(., -State), na.rm = TRUE),
@@ -247,14 +264,13 @@ server <- function(input, output, session) {
   observeEvent(input$state, {
     vals <- base_values()
     for (ind in names(vals)) {
-      input_id <- paste0("slider_", make.names(ind))
-      if (!is.null(input[[input_id]])) {
-        updateSliderInput(session, input_id, value = vals[[ind]])
-      } else {
-        next
-      }
+      updateSliderInput(
+        session,
+        paste0("slider_", make.names(ind)),
+        value = vals[[ind]]
+      )
     }
-  }, ignoreInit = FALSE)
+  }, ignoreInit = TRUE)
   
   # Current indicator values
   indicators <- reactive({
@@ -297,7 +313,7 @@ server <- function(input, output, session) {
     HTML(sprintf(
       "<div style='color: #6c757d; margin-top: 8px; margin-bottom: 8px;'>
       <div style='font-size: 0.88rem; margin-bottom: 4px;'>
-        <em>Effective weight distribution:</em>
+        <em>Effective weight distribution selected:</em>
       </div>
       <div style='font-size: 0.95rem; font-weight: 500;'>
         Consumer: %.0f%% | Structure: %.0f%% | Regional Market: %.0f%%
@@ -357,14 +373,26 @@ server <- function(input, output, session) {
     
     state_rank <- rank(-weighted_base_vec, ties.method = "min")[input$state]
     
+    # Add effective weight distribution if weights are not all equal
+    weight_info <- ""
+    if (!all(weights == 100)) {
+      total_weight <- sum(weights)
+      pcts <- (weights / total_weight) * 100
+      weight_info <- sprintf(
+        "<br><small style='color: #6c757d;'>Effective weight distribution selected: Consumer: %.0f%% | Structure: %.0f%% | Regional Market: %.0f%%</small>",
+        pcts[1], pcts[2], pcts[3]
+      )
+    }
+    
     HTML(sprintf(
       '<div style="font-size: 18px; font-weight: bold; color: #2c3e50;">
-      Standardized score (0–100%%) for %s: %.2f%% | Dynamic Rank: %d of %d Southeast states
+      Standardized score (0–100%%) for %s: %.2f%% | Dynamic Rank: %d of %d Southeast states%s
     </div>',
     input$state, 
     standardized, 
     as.integer(state_rank), 
-    length(weighted_base_vec)
+    length(weighted_base_vec),
+    weight_info
     ))
   })
   
@@ -415,14 +443,13 @@ server <- function(input, output, session) {
   # helper to render tables
   render_group_table <- function(group_name, id_suffix) {
     output_name <- paste0("detailsTable_", id_suffix)
-    output[[output_name]] <- renderDT({
+    output[[output_name]] <- DT::renderDT({
       df <- subset(indicator_details_df, Group == group_name)
       order_vec <- indicator_groups_lookup$Indicator[indicator_groups_lookup$Group == group_name]
       df <- df[match(order_vec, df$Name), ]
       # removing columns I don't want to show up
       df$Group <- NULL
-      df$safe_id <- NULL  
-      
+
       # building the table
       datatable(df, escape = FALSE, rownames = FALSE,
                 options = list(pageLength = 10, autoWidth = FALSE, scrollX = TRUE,
