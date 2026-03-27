@@ -28,6 +28,12 @@ indicator_groups_lookup <- indicator_data$groups
 indicator_info <- indicator_data$info
 indicator_scoring_details <- indicator_data$scoring
 
+# Calculate indicator counts per category dynamically
+indicator_counts <- indicator_groups_lookup %>%
+  count(Group) %>%
+  deframe()
+
+# Read in theme for plot
 source("plot_theming.R", local = TRUE)
 
 # Define a null-coalescing operator for use throughout to set defaults (steps etc.)
@@ -185,17 +191,17 @@ ui <- fluidPage(
                p("Adjust the relative importance of each category. Each weight is applied to every indicator within that category, and the final score is calculated as the sum of all weighted indicator values divided by the maximum possible weighted score.", 
                  style = "font-size: 0.85rem; margin-bottom: 10px; color: #6c757d;"),
                sliderInput("weight_consumer", 
-                           "Consumer (C): (5 indicators)",
+                           sprintf("Consumer (C): (%d indicators)", indicator_counts["Consumer (C)"]),
                            min = 0, max = 100, value = 100, step = 25,
                            post = "%",
                            ticks = TRUE),
                sliderInput("weight_structure", 
-                           "Structure (S): (7 indicators)",
+                           sprintf("Structure (S): (%d indicators)", indicator_counts["Structure (S)"]),
                            min = 0, max = 100, value = 100, step = 25,
                            post = "%",
                            ticks = TRUE),
                sliderInput("weight_market", 
-                           "Regional Market (M): (3 indicators)",
+                           sprintf("Regional Market (M): (%d indicators)", indicator_counts["Regional Market (M)"]),
                            min = 0, max = 100, value = 100, step = 25,
                            post = "%",
                            ticks = TRUE),
@@ -312,19 +318,23 @@ server <- function(input, output, session) {
     
     HTML(sprintf(
       "<div style='color: #6c757d; margin-top: 8px; margin-bottom: 8px;'>
-      <div style='font-size: 0.88rem; margin-bottom: 4px;'>
-        <em>Effective weight distribution selected:</em>
-      </div>
-      <div style='font-size: 0.95rem; font-weight: 500;'>
-        Consumer: %.0f%% | Structure: %.0f%% | Regional Market: %.0f%%
-      </div>
-      <div style='font-size: 0.8rem; margin-top: 4px; font-style: italic;'>
-        (Applied to 5, 7, and 3 indicators respectively)
-      </div>
-    </div>",
-    pcts[1], pcts[2], pcts[3]
+    <div style='font-size: 0.88rem; margin-bottom: 4px;'>
+      <em>Effective weight distribution selected:</em>
+    </div>
+    <div style='font-size: 0.95rem; font-weight: 500;'>
+      Consumer: %.0f%% | Structure: %.0f%% | Regional Market: %.0f%%
+    </div>
+    <div style='font-size: 0.8rem; margin-top: 4px; font-style: italic;'>
+      (Applied to %d, %d, and %d indicators respectively)
+    </div>
+  </div>",
+  pcts[1], pcts[2], pcts[3],
+  indicator_counts["Consumer (C)"],
+  indicator_counts["Structure (S)"],
+  indicator_counts["Regional Market (M)"]
     ))
   })
+  
   # Reset weights to 100
   observeEvent(input$reset_weights, {
     updateSliderInput(session, "weight_consumer", value = 100)
