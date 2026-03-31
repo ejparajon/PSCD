@@ -18,7 +18,8 @@ Built using R Shiny, the [Power Sector Competitiveness Dashboard Simulator Tool]
     * Regional Market
       
    By default, each category is equally weighted (33% each). All weights are applied dynamically and propagate through the composite scoring framework, updating overall competitiveness scores and state rankings in real time.
-## Example Use Cases
+## Example use cases
+Support research, teaching, and policy evaluation by: 
 * Assessing how enhanced consumer options affect competitiveness rankings
 * Evaluating the impact of introducing retail competition in a vertically integrated state
 * Comparing regional coordination scenarios (e.g., joining an RTO/ISO)
