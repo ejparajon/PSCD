@@ -28,6 +28,19 @@ indicator_groups_lookup <- indicator_data$groups
 indicator_info <- indicator_data$info
 indicator_scoring_details <- indicator_data$scoring
 
+# Setting category names. Every other reference to a
+# category string (CSS, weights vector, plot factor levels) reads from here 
+CATEGORY_NAMES <- c("Consumer (C)", "Structure (S)", "Regional Market (M)")
+
+base_indicators <- setdiff(colnames(base_data), "State")
+missing_groups <- setdiff(base_indicators, indicator_groups_lookup$Indicator)
+if (length(missing_groups) > 0) {
+  stop(
+    "These base_data indicators have no entry in indicator_groups_lookup: ",
+    paste(missing_groups, collapse = ", ")
+  )
+}
+
 # Calculate indicator counts per category dynamically
 indicator_counts <- indicator_groups_lookup %>%
   count(Group) %>%
@@ -39,6 +52,35 @@ source("plot_theming.R", local = TRUE)
 # Define a null-coalescing operator for use throughout to set defaults (steps etc.)
 # Returns left-hand side (a) if  not NULL, otherwise it returns the right-hand side (b)
 `%||%` <- function(a, b) if (!is.null(a)) a else b
+
+# Weighted standardized score for a single set of indicator values.
+#
+# vals    : named numeric vector of indicator values (0-1), names = indicator
+# weights : named numeric vector keyed by category name (e.g. CATEGORY_NAMES)
+# groups  : data.frame with columns Indicator, Group
+#
+# Returns a single standardized score on 0-100.
+#
+weighted_standardized_score <- function(vals, weights, groups) {
+  ind_names <- names(vals)
+  grp <- groups$Group[match(ind_names, groups$Indicator)]
+  w <- weights[grp]                       # weight per indicator, by its group
+  present <- !is.na(vals) & !is.na(w)     # indicators that contribute
+  denom <- sum(w[present])
+  if (denom == 0) return(NA_real_)
+  numer <- sum(vals[present] * w[present])
+  (numer / denom) * 100
+}
+
+# Numeric matrix of indicator values, built once at startup. Rows are states,
+# columns are indicators in base_indicators order. The baseline ranking reads
+# this with a single matrix-vector product instead of scanning the data frame
+# per state. col_groups maps each column to its category so a weight vector can
+# be expanded to per-column weights by name lookup.
+base_matrix <- as.matrix(base_data[base_indicators])
+storage.mode(base_matrix) <- "double"
+rownames(base_matrix) <- base_data$State
+col_groups <- indicator_groups_lookup$Group[match(base_indicators, indicator_groups_lookup$Indicator)]
 
 # --- UI ----------------------------------------------------------------------
 ui <- fluidPage(
@@ -214,6 +256,9 @@ ui <- fluidPage(
   # Layout of app
   mainPanel(
     htmlOutput("totalScore"),
+    tags$p(
+      style = "font-size: 0.8rem; color: #6c757d; font-style: italic; margin-top: 4px;"
+    ),
     plotOutput("barPlot", height = "550px"),
     hr(),
     h3("Indicator Details", style = "font-weight: 700 !important; color: #2c3e50;"),
@@ -224,46 +269,30 @@ ui <- fluidPage(
 
 # --- Server ------------------------------------------------------------------
 server <- function(input, output, session) {
-  # Precompute baseline totals/standardized for ranking
-  baseline_scores_df <- base_data %>%
-    mutate(Total = rowSums(select(., -State), na.rm = TRUE),
-           Standardized = (Total / (ncol(select(., -State)))) * 100) %>%
-    select(State, Standardized)
+  groups_lookup <- indicator_groups_lookup %>% select(Indicator, Group)
   
-  baseline_vec <- setNames(baseline_scores_df$Standardized, baseline_scores_df$State)
+  # Weighted baseline: every state scored from the original base_data values
+  # under the current category weights. Used to rank the selected state.
   
-  # Weighted baseline 
+  # Computed as a single matrix-vector product: base_matrix (states x
+  # indicators) times w (per-indicator weights) gives every state's weighted
+  # total at once. 
   weighted_baseline <- reactive({
     weights <- category_weights()
-    groups_lookup <- indicator_groups_lookup %>% select(Indicator, Group)
-    
-    # Calculate max possible weighted score (sum of weights applied to all indicators)
-    all_groups <- groups_lookup$Group
-    max_weighted_score <- sum(weights[all_groups])
-    
-    weighted_df <- base_data %>%
-      pivot_longer(cols = -State, names_to = "Indicator", values_to = "Value") %>%
-      left_join(groups_lookup, by = "Indicator") %>%
-      mutate(Weight = weights[Group]) %>%  # Look up weight for each indicator
-      mutate(Weighted_Value = Value * Weight) %>%  # Weight each indicator individually
-      
-      group_by(State) %>%
-      summarise(
-        Weighted_Total = sum(Weighted_Value, na.rm = TRUE),
-        .groups = 'drop'
-      ) %>%
-      mutate(Standardized = (Weighted_Total / max_weighted_score) * 100)
-    
-    # Return as named vector for ranking
-    setNames(weighted_df$Standardized, weighted_df$State)
+    w <- weights[col_groups]                 # weight per matrix column
+    denom <- sum(w)
+    if (denom == 0) {
+      return(setNames(rep(NA_real_, nrow(base_matrix)), rownames(base_matrix)))
+    }
+    numer <- as.vector(base_matrix %*% w)    # all states in one product
+    setNames((numer / denom) * 100, rownames(base_matrix))
   })
   
   # Helper to get current state's base values as named numeric vector
   base_values <- reactive({
     req(input$state)
-    indicators <- setdiff(colnames(base_data), "State")
     row <- base_data[base_data$State == input$state, , drop = FALSE]
-    setNames(as.numeric(row[1, indicators]), indicators)
+    setNames(as.numeric(row[1, base_indicators]), base_indicators)
   })
   
   # When user changes state, update sliders
@@ -291,6 +320,12 @@ server <- function(input, output, session) {
     }, simplify = TRUE, USE.NAMES = TRUE)
     setNames(as.numeric(out), names(vals))
   })
+  
+  # Debounced copy of indicators(). The plot and score read this so a slider
+  # drag triggers one render after the slider settles (250ms) rather than on
+  # every intermediate value. Slider-sync observers still read inputs directly,
+  # so state changes update sliders with no delay. Can change this value for smoothness
+  indicators_d <- debounce(indicators, 250)
   
   # Reset sliders to base values
   reset_sliders <- function() {
@@ -328,7 +363,7 @@ server <- function(input, output, session) {
       (Applied to %d, %d, and %d indicators respectively)
     </div>
   </div>",
-  pcts[1], pcts[2], pcts[3],
+  pcts[["Consumer (C)"]], pcts[["Structure (S)"]], pcts[["Regional Market (M)"]],
   indicator_counts["Consumer (C)"],
   indicator_counts["Structure (S)"],
   indicator_counts["Regional Market (M)"]
@@ -342,16 +377,19 @@ server <- function(input, output, session) {
     updateSliderInput(session, "weight_market", value = 100)
   })
   
-  # Get category weights as named vector
+  # Get category weights as named vector, keyed by the shared CATEGORY_NAMES
   category_weights <- reactive({
-    c("Consumer (C)" = input$weight_consumer %||% 100,
-      "Structure (S)" = input$weight_structure %||% 100,
-      "Regional Market (M)" = input$weight_market %||% 100)
+    setNames(
+      c(input$weight_consumer %||% 100,
+        input$weight_structure %||% 100,
+        input$weight_market %||% 100),
+      CATEGORY_NAMES
+    )
   })
   
   # Total score and state rank 
   output$totalScore <- renderUI({
-    vals <- indicators()
+    vals <- indicators_d()
     weights <- category_weights()
     req(vals, input$state, weights)
     
@@ -362,21 +400,7 @@ server <- function(input, output, session) {
     </div>'))
     }
     
-    # Apply weights to each indicator based on its category
-    # This multiplies each indicator's value by its category weight
-    # e.g., if Consumer weight is 100 and indicator value is 0.5, weighted value = 50
-    weighted_vals <- sapply(names(vals), function(ind) {
-      group <- indicator_groups_lookup$Group[indicator_groups_lookup$Indicator == ind]
-      vals[[ind]] * weights[[group]]
-    })
-    total <- sum(weighted_vals, na.rm = TRUE)
-    
-    # Calculate max possible weighted score
-    # This is the sum of category weights applied to each indicator
-    # e.g., with C=100, S=100, M=25: (5*100) + (7*100) + (3*25) = 1275
-    all_groups <- indicator_groups_lookup$Group
-    max_weighted <- sum(weights[all_groups])
-    standardized <- (total / max_weighted) * 100 
+    standardized <- weighted_standardized_score(vals, weights, groups_lookup)
     
     weighted_base_vec <- weighted_baseline() 
     weighted_base_vec[input$state] <- standardized 
@@ -390,7 +414,7 @@ server <- function(input, output, session) {
       pcts <- (weights / total_weight) * 100
       weight_info <- sprintf(
         "<br><small style='color: #6c757d;'>Effective weight distribution selected: Consumer: %.0f%% | Structure: %.0f%% | Regional Market: %.0f%%</small>",
-        pcts[1], pcts[2], pcts[3]
+        pcts[["Consumer (C)"]], pcts[["Structure (S)"]], pcts[["Regional Market (M)"]]
       )
     }
     
@@ -408,7 +432,7 @@ server <- function(input, output, session) {
   
   # Bar plot
   output$barPlot <- renderPlot({
-    vals <- indicators()
+    vals <- indicators_d()
     req(vals)
     
     df <- data.frame(
@@ -416,10 +440,10 @@ server <- function(input, output, session) {
       Value = vals,
       stringsAsFactors = FALSE
     ) %>%
-      left_join(indicator_groups_lookup %>% select(Indicator, Group), by = "Indicator")
+      left_join(groups_lookup, by = "Indicator")
     
     df$Label <- sprintf("%.2f", df$Value)
-    df$Group <- factor(df$Group, levels = c("Consumer (C)", "Structure (S)", "Regional Market (M)"))
+    df$Group <- factor(df$Group, levels = CATEGORY_NAMES)
     
     ggplot(df, aes(x = reorder(Indicator, Value), y = Value, fill = Group)) +
       geom_col(color = "black", width = 0.58) +       
@@ -459,7 +483,7 @@ server <- function(input, output, session) {
       df <- df[match(order_vec, df$Name), ]
       # removing columns I don't want to show up
       df$Group <- NULL
-
+      
       # building the table
       datatable(df, escape = FALSE, rownames = FALSE,
                 options = list(pageLength = 10, autoWidth = FALSE, scrollX = TRUE,
@@ -475,15 +499,9 @@ server <- function(input, output, session) {
   }
   
   output$indicatorDetailTabs <- renderUI({
-    valid_groups_map <- list(
-      "Consumer (C)" = "Consumer (C)",
-      "Structure (S)" = "Structure (S)",
-      "Regional Market (M)" = "Regional Market (M)"
-    )
-    tab_panels <- lapply(names(valid_groups_map), function(tab_title) {
-      group_full_name <- valid_groups_map[[tab_title]]
+    tab_panels <- lapply(CATEGORY_NAMES, function(tab_title) {
       id_suffix <- tolower(gsub(" ", "_", tab_title))
-      tabPanel(title = tab_title, render_group_table(group_full_name, id_suffix))
+      tabPanel(title = tab_title, render_group_table(tab_title, id_suffix))
     })
     do.call(tabsetPanel, c(id = "details_tabs", tab_panels))
   })
