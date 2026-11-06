@@ -15,20 +15,22 @@ saveRDS(base_data,"state_indicator_data.rds")
 
 # For re-saving the indicator options
 indicator_steps <- c(
-  "Third Party PPA (C)" = 0.5,
+  "Third Party PPA (C)" = 0.25,
   "Net Metering (C)" = 0.25,
   "Utility Green Tariffs (C)" = 0.25,
   "Residential Retail Choice (C)" = 0.5,
   "Commercial and Industrial Retail Choice (C)" = 0.5,
+  "Plug-in Solar (C)" = 0.25,
+  "Virtual Power Plants (C)" = 0.01,
   "Option for Municipal Ownership of Utilities (S)" = 1.0,
   "Presence of a Consumer Advocate (S)" = 1.0,
   "Community Choice Aggregation (S)" = 1.0,
   "Customer Concentration (S)" = 0.5,
   "Generation Concentration (S)" = 0.5,
-  "Interconnection Standards (S)" = 0.33,
+  "Interconnection Standards (S)" = 0.25,
   "Procurement Requirements (S)" = 0.33,
-  "State Authority Role in Wholesale Market (M)" = 0.33,
-  "Civil Society Participation Role in Wholesale Market (M)" = 0.33,
+  "State Authority Role in Wholesale Market (M)" = 0.01,
+  "Civil Society Participation Role in Wholesale Market (M)" = 0.01,
   "Market Participation (M)" = 0.2
 )
 
@@ -38,7 +40,7 @@ indicator_steps <- c(
 indicator_groups_lookup <- data.frame(
   Indicator = names(indicator_steps),
   Group = c(
-    rep("Consumer (C)", 5),
+    rep("Consumer (C)", 7),
     rep("Structure (S)", 7),
     rep("Regional Market (M)", 3)
   ),
@@ -64,6 +66,11 @@ indicator_info <- list(
   "Commercial and Industrial Retail Choice (C)" = 
     "Evaluates whether state policy enables commercial and industrial customers to choose alternative electricity suppliers other than the incumbent utility.",
   
+  "Plug-in Solar (C)" =
+    "Evaluates whether state policy enables customers to install small plug-in (balcony) solar devices that connect through a standard household outlet.",
+  
+  "Virtual Power Plants (C)" =
+    "Evaluates whether state policy enables residential customers to enroll battery storage and other distributed energy resources in aggregated programs (virtual power plants) and be compensated for participating.",
   
   # --- Structure INDICATORS ---
   "Option for Municipal Ownership of Utilities (S)" =
@@ -79,10 +86,10 @@ indicator_info <- list(
     "Assesses how concentrated each state’s utility market overall is by calculating the Herfindahl-Hirschman Index (HHI) from customer counts, following Department of Justice antitrust guidelines.",
   
   "Generation Concentration (S)" =
-    "Assesses how concentrated each state’s utility generation capacity is by calculating the Herfindahl-Hirschman Index (HHI) from customer counts and Department of Justice antitrust guidelines.",
+    "Assesses how concentrated each state’s utility generation capacity is by calculating the Herfindahl-Hirschman Index (HHI) from generation capacity shares, following Department of Justice antitrust guidelines.",
   
   "Interconnection Standards (S)" =
-    "Measures the presence, or lack thereof, of a state interconnection standard or guideline for investor-owned utilities, or in the absence of a state policy, whether the state’s largest utility has one.",
+    "Measures whether the state has a binding interconnection standard, guidelines, or utility procedures for distributed energy resources, and whether they require the IEEE 1547-2018 technical standard.",
   
   "Procurement Requirements (S)" =
     "Measures the presence, or lack thereof, of state rules on how utilities may acquire new generation sources. This can include requiring or encouraging competitive procurement for all or some new generation in lieu of defaulting to a default utility-led approach.",
@@ -103,7 +110,7 @@ indicator_scoring_details <- list(
   
   # --- CONSUMER INDICATORS ---
   "Third Party PPA (C)" =
-    "1.0: Permitted by state.<br>0.5: Partially permitted (e.g., only solar leases, only tax-exempt entities, or only sleeved PPAs).<br>0.0: Disallowed/restricted OR unknown/unclear.",
+    "1.0: Permitted by state.<br>0.75: Pilot PPA process available to a majority of utility customers.<br>0.5: Sleeved PPAs permitted and/or pilot programs for less than half of customers.<br>0.25: Partially allowed with notable restrictions (e.g., only solar leases, only tax-exempt entities, or only sleeved PPAs).<br>0.0: Disallowed/restricted OR unknown/unclear.",
   
   "Net Metering (C)" =
     "1.0: State policy enables/requires net metering with no aggregated demand limits.<br>0.75: Net metering allowed with caps >1% of aggregated demand.<br>0.5: Net metering allowed with caps ≤1% of aggregated demand.<br>0.25: No state policy, but utility program(s) exist.<br>0.0: Ban OR no policies/programs.<br>Exception: If limits vary by ownership type, score is the average across categories.",
@@ -117,6 +124,11 @@ indicator_scoring_details <- list(
   "Commercial and Industrial Retail Choice (C)" =
     "1.0: State enables large-load customers to choose alternative suppliers with minimal restrictions.<br>0.5: Allowed but with significant limitations (load thresholds, one-time election, geographic limits).<br>0.0: Prohibited OR no programs exist.",
   
+  "Plug-in Solar (C)" =
+    "1.0: Enacted law provides an interconnection exemption and property/renter protections.<br>0.75: Enacted law provides streamlined interconnection and property/renter protections.<br>0.5: Enacted law provides an interconnection exemption or property/renter protections, but not both.<br>0.25: Enacted law provides streamlined interconnection only.<br>0.0: No enacted enabling law (includes introduced, pending, or failed bills).",
+  
+  "Virtual Power Plants (C)" =
+    "1.0: Qualifying VPP program with broad residential access; third-party aggregators permitted.<br>0.75: Broad access without third-party aggregators, or limited access with third-party aggregators.<br>0.5: Limited access; third-party aggregators not permitted.<br>0.25: Binding action requires a VPP program but no implementation step by December 31, 2027.<br>0.0: No binding qualifying action (includes pending, proposed, or draft actions).<br>Note: Each of the state's five largest utilities (by residential customers) is scored. The state score is the average of those scores, weighted by each utility's share of the five utilities' combined residential customers.",
   
   # --- Structure INDICATORS ---
   "Option for Municipal Ownership of Utilities (S)" =
@@ -135,24 +147,24 @@ indicator_scoring_details <- list(
     "1.0: HHI < 1000 (not concentrated).<br>0.5: 1000–1799 (moderately concentrated).<br>0.0: ≥1800 (highly concentrated).",
   
   "Interconnection Standards (S)" =
-    "1.0: State Standard with no system size restriction(s), or if state’s largest utility is a non-investor owned utility (i.e. public utility), the utility’s guideline/policy/procedure with no system size limit.<br>0.66: State Standard with system size restriction(s), or if state’s largest utility is a non-investor owned utility (i.e. public utility), the utility’s guideline/policy/procedure with a system size limit.<br>0.33: State Guidelines, or a guideline/policy/procedure from the state’s largest utility if no State Standard/Guideline but largest utility is investor-owned.<br>0.0: No standards/guidelines.",
+    "1.0: Binding statewide standard (or equivalent) requiring IEEE 1547-2018.<br>0.75: Binding statewide standard with IEEE 1547-2018 adopted by the largest investor-owned utility only; or guidelines or utility procedures with IEEE 1547-2018 required statewide.<br>0.5: Binding statewide standard (or equivalent) without IEEE 1547-2018; or guidelines or utility procedures with IEEE 1547-2018 adopted by the largest investor-owned utility only.<br>0.25: Guidelines or utility procedures without IEEE 1547-2018.<br>0.0: No standard, guidelines, or utility procedures, and no IEEE 1547-2018 adoption.",
   
   "Procurement Requirements (S)" =
-    "1.0: All-source solicitations or state has >66% of customers participating in a wholesale market.<br>Single-source competitive solicitations or no competitive solicitation requirements but has >33% of customers participating in a wholesale market.<br>0.33: No competitive solicitation requirements (except limited competitive procurement for renewables).<br>0.0: No competitive solicitation requirements.",
+    "1.0: All-source solicitations or state has >66% of customers participating in a wholesale market.<br>0.66: Single-source competitive solicitations, or no competitive solicitation requirements but >33% of customers participating in a wholesale market.<br>0.33: No general competitive solicitation requirements, but limited competitive procurement for renewables.<br>0.0: No competitive solicitation requirements of any kind.",
   
   # --- MARKET INDICATORS ---
-  "Regional Market Participation (M)" =
+  "Market Participation (M)" =
     "1.0: ≥90% of customers in RTO/ISO.<br>0.8: 50–89.9%.<br>0.6: 25–49.9%.<br>0.4: SEEM participation + 0.1–24.9% RTO.<br>0.2: SEEM-only, 0% RTO.<br>0.0: No SEEM and no RTO participation.<br>
    Note: A state receives a score based on the RTO/ISO it is in. If a state is in multiple markets, the score is an average of those. If a state is partially in a market(s), but partially not in a market, it will be an average of those.",
   
-  "Civil Society Participation Role in Wholesale Regional Market (M)" =
+  "Civil Society Participation Role in Wholesale Market (M)" =
     "1.0: Open membership (MISO, CAISO).<br>
    0.66: Limited voting participation (ISO-NE, SPP).<br>
    0.33: Non-voting participation (PJM).<br>
    0.0: Not in RTO/ISO.<br>
    Note: If a state is partially in a market(s) and with an area not participating in a market, the score is a weighted average of those (proportional to customer counts).",
   
-  "State Authority Role in Wholesale Regional Market (M)" =
+  "State Authority Role in Wholesale Market (M)" =
     "1.0: Statutory (CAISO, ERCOT).<br>
    0.66: Delegated (MISO, SPP).<br>
    0.33: Advisory (ISO-NE, NYISO, PJM).<br>
@@ -166,6 +178,12 @@ names(indicator_steps) <- str_replace_all(names(indicator_steps), "\\u202F|\\s+"
 names(indicator_info) <- str_replace_all(names(indicator_info), "\\u202F|\\s+", " ")
 indicator_groups_lookup$Indicator <- str_replace_all(indicator_groups_lookup$Indicator, "\\u202F|\\s+", " ")
 
+names(indicator_scoring_details) <- str_replace_all(names(indicator_scoring_details), "\\u202F|\\s+", " ")
+
+stopifnot(
+  setequal(names(indicator_steps), names(indicator_info)),
+  setequal(names(indicator_steps), names(indicator_scoring_details))
+)
 
 # Combine everything into a single list
 indicator_data <- list(

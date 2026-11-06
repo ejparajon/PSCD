@@ -20,8 +20,7 @@ custom_indicator_theme <- theme_minimal(base_size = 14, base_family = "Roboto") 
   theme(
     # Axis text: slightly smaller for laptop screens 
     axis.text.x = element_text(size = 13, color = "#2c3e50"),
-    axis.text.y = element_text(size = 13, color = "#2c3e50"),
-    
+    axis.text.y = element_text(size = 13, color = "#2c3e50", lineheight = 0.85),    
     # Axis titles: lighter and smaller to reduce vertical space
     axis.title.y = element_text(size = 15, margin = margin(r = 6)),
     axis.title.x = element_text(size = 15, margin = margin(t = 6)),
@@ -33,7 +32,7 @@ custom_indicator_theme <- theme_minimal(base_size = 14, base_family = "Roboto") 
     legend.position = "bottom",
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 12, face = "bold"),
-    
+    legend.justification = "right",
     # Reduce left/right padding so long labels fit better
     plot.margin = margin(t = 10, r = 25, b = 10, l = 10),
     
